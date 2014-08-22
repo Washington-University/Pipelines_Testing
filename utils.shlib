@@ -1,0 +1,52 @@
+#
+# Description:
+#
+#
+
+# ------------------------------------------------------------------------------
+#   Load Function Libraries that this library depends upon
+# ------------------------------------------------------------------------------
+
+source colors.shlib # color name variables
+
+# ------------------------------------------------------------------------------
+#   Utility Functions
+# ------------------------------------------------------------------------------
+
+utils_IsYes() {
+    answer="$1"
+    # lowercase the answer
+    answer=`echo $answer | tr '[:upper:]' '[:lower:]'`
+    if [ "$answer" = "y" ] || [ "$answer" = "yes" ]
+    then
+        return 0 # The answer is yes: True
+    else
+        return 1 # The answer is yes: False
+    fi
+}
+
+utils_ShouldProceed() {
+    echo -ne "Proceed? [n]: "
+    read proceed
+
+    if utils_IsYes $proceed
+    then
+        return 0 # Should proceed
+    else
+        return 1 # Should not proceed
+    fi
+}
+
+utils_ProvisionalExecute() {
+    commandToExecute=$@
+    echo -e "${colors_red}${commandToExecute}${colors_no_color}"
+
+    if utils_ShouldProceed
+    then
+        # Note: Use eval instead of just the commandToExecute by itself 
+        # to get pipes in command line to work properly
+        eval ${commandToExecute}
+    else
+        echo "Not executing command"
+    fi
+}

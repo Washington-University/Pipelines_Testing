@@ -1,0 +1,462 @@
+#!/bin/bash
+
+# Author: Timothy B. Brown (tbbrown at wustl dot edu)
+
+source colors.shlib
+source utils.shlib
+
+DATA_DIR="${HOME}/projects/Pipelines_ExampleData"
+SNAPSHOTS_SUFFIX=".snapshots"
+ZIPS_SUFFIX=".zips"
+STATUS_SUFFIX=".status"
+UNPROCESSED_DIR="0.BeforeAnyProcessing"
+PREFREESURFER_PROCESSED_DIR="1a.PreFreeSurferProcessed"
+FREESURFER_PROCESSED_DIR="1b.FreeSurferProcessed"
+POSTFREESURFER_PROCESSED_DIR="1c.PostFreeSurferProcessed"
+FUNCTIONAL_VOLUME_BASED_PREPROCESSED_DIR="2a.FunctionalVolumeBasedPreprocessed"
+FUNCTIONAL_SURFACE_BASED_PREPROCESSED_DIR="2b.FunctionalSurfaceBasedPreprocessed"
+DIFFUSION_PREPROCESSED_DIR="3.DiffusionPreprocessed"
+TASK_ANALYSIS_DIR="4.TaskAnalysisComplete"
+ICA_FIX_COMPLETE_DIR="5.IcaFixComplete"
+
+PIPELINES_DIR="${HOME}/projects/Pipelines"
+
+eliminate_current_subject_data() {
+    echo -ne "Enter subject id: "
+    read ans
+    if [ -n "$ans" ] ; then
+        subject_id=${ans}
+        dest_dir="${DATA_DIR}/${subject_id}"
+        
+        echo -e "${colors_red}"
+        echo "Command to execute"
+        echo "rm -rvf ${dest_dir}"
+        echo -e "${colors_no_color}"
+
+        if utils_ShouldProceed ; then
+            rm -rvf ${dest_dir}
+            echo `date` "Current subject data for subject ${subject_id} eliminated" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
+        else
+            echo "Not executing command."
+        fi
+    else
+        echo "No subject id entered. Not executing a command."
+    fi    
+}
+
+rebuild_unprocessed_from_zips() {
+    echo -ne "Enter subject id: "
+    read ans
+    if [ -n "$ans" ] ; then
+        subject_id=${ans}
+        zip_dir="${DATA_DIR}/${subject_id}${ZIPS_SUFFIX}"
+
+        start_dir="${PWD}"
+        cd ${zip_dir}
+
+        zip_files=`ls -d ${zip_dir}/*.zip`
+
+        for zip_file in ${zip_files} ; do
+            unzip ${zip_file}
+        done
+
+        cd "${start_dir}"
+
+        source_dir="${zip_dir}/${subject_id}/"
+        dest_dir="${DATA_DIR}/${subject_id}${SNAPSHOTS_SUFFIX}/${UNPROCESSED_DIR}/${subject_id}"
+        mkdir -p ${dest_dir}
+        rsync -av ${source_dir} ${dest_dir}
+        rm -rvf ${source_dir}
+
+        echo `date` "Unprocessed data for subject ${subject_id} rebuilt from zip files" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
+
+    else
+        echo "No subject id entered. Not executing a commands."
+    fi    
+}
+
+current_to() {
+    local destination_step=${1}
+
+    echo -ne "Enter subject id: "
+    read ans
+    if [ -n "$ans" ] ; then
+        subject_id=${ans}
+        source_dir="${DATA_DIR}/${subject_id}/"
+        dest_dir="${DATA_DIR}/${subject_id}${SNAPSHOTS_SUFFIX}/${destination_step}/${subject_id}"
+
+        echo -e "${colors_red}"
+        echo "Command to execute"
+        echo "rsync -av ${source_dir} ${dest_dir}"
+        echo -e "${colors_no_color}"
+
+        if utils_ShouldProceed ; then
+            mkdir -p ${dest_dir}
+            rsync -av ${source_dir} ${dest_dir}
+            echo `date` "Current data for subject ${subject_id} copied to ${destination_step}" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
+        else
+            echo "Not executing command."
+        fi
+    else
+        echo "No subject id entered. Not executing a command."
+    fi
+}
+
+to_current() {
+    local from_step=${1}
+
+    echo -ne "Enter subject id: "
+    read ans
+    if [ -n "$ans" ] ; then
+        subject_id=${ans}
+        source_dir="${DATA_DIR}/${subject_id}${SNAPSHOTS_SUFFIX}/${from_step}/${subject_id}/"
+        dest_dir="${DATA_DIR}/${subject_id}"
+
+        echo -e "${colors_red}"
+        echo "Command to execute"
+        echo "rsync -av ${source_dir} ${dest_dir}"
+        echo -e "${colors_no_color}"
+
+        if utils_ShouldProceed ; then
+            mkdir -p ${dest_dir}
+            rsync -av ${source_dir} ${dest_dir}
+            echo `date` "${from_step} data for subject ${subject_id} copied to current" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
+        else
+            echo "Not executing command."
+        fi
+    else
+        echo "No subject id entered. Not executing a command."
+    fi
+}
+
+run_prefreesurfer() {
+    echo -ne "Enter subject id: "
+    read ans
+    if [ -n "$ans" ] ; then
+        subject_id=${ans}
+
+        echo -e "${colors_red}"
+        echo "Command to execute"
+        echo ". ${PIPELINES_DIR}/Examples/Scripts/PreFreeSurferPipelineBatch.sh --StudyFolder=\"${DATA_DIR}\" --Subjlist=\"${subject_id}\""
+        echo -e "${colors_no_color}"
+
+        if utils_ShouldProceed ; then
+            . ${PIPELINES_DIR}/Examples/Scripts/PreFreeSurferPipelineBatch.sh --StudyFolder="${DATA_DIR}" --Subjlist="${subject_id}"
+            echo `date` "PreFreeSurfer pipeline submitted for subject ${subject_id}" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
+        else
+            echo "Not executing command."
+        fi
+    else
+        echo "No subject id entered. Not executing a command."
+    fi
+}
+
+run_freesurfer() {
+    echo -ne "Enter subject id: "
+    read ans
+    if [ -n "$ans" ] ; then
+        subject_id=${ans}
+
+        echo -e "${colors_red}"
+        echo "Command to execute"
+        echo ". ${PIPELINES_DIR}/Examples/Scripts/FreeSurferPipelineBatch.sh --StudyFolder=\"${DATA_DIR}\" --Subjlist=\"${subject_id}\""
+        echo -e "${colors_no_color}"
+
+        if utils_ShouldProceed ; then
+            . ${PIPELINES_DIR}/Examples/Scripts/FreeSurferPipelineBatch.sh --StudyFolder="${DATA_DIR}" --Subjlist="${subject_id}"
+            echo `date` "FreeSurfer pipeline submitted for subject ${subject_id}" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
+        else
+            echo "Not executing command."
+        fi
+    else
+        echo "No subject id entered. Not executing a command."
+    fi
+}
+
+run_postfreesurfer() {
+    echo -ne "Enter subject id: "
+    read ans
+    if [ -n "$ans" ] ; then
+        subject_id=${ans}
+
+        echo -e "${colors_red}"
+        echo "Command to execute"
+        echo ". ${PIPELINES_DIR}/Examples/Scripts/PostFreeSurferPipelineBatch.sh --StudyFolder=\"${DATA_DIR}\" --Subjlist=\"${subject_id}\""
+        echo -e "${colors_no_color}"
+
+        if utils_ShouldProceed ; then
+            . ${PIPELINES_DIR}/Examples/Scripts/PostFreeSurferPipelineBatch.sh --StudyFolder="${DATA_DIR}" --Subjlist="${subject_id}"
+            echo `date` "PostFreeSurfer pipeline submitted for subject ${subject_id}" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
+        else
+            echo "Not executing command."
+        fi
+    else
+        echo "No subject id entered. Not executing a command."
+    fi
+}
+
+run_functional_volume_based_preprocessing() {
+    echo -ne "Enter subject id: "
+    read ans
+    if [ -n "$ans" ] ; then
+        subject_id=${ans}
+
+        echo -e "${colors_red}"
+        echo "Command to execute"
+        echo ". ${PIPELINES_DIR}/Examples/Scripts/GenericfMRIVolumeProcessingPipelineBatch.sh --StudyFolder=\"${DATA_DIR}\" --Subjlist=\"${subject_id}\""
+        echo -e "${colors_no_color}"
+
+        if utils_ShouldProceed ; then
+            . ${PIPELINES_DIR}/Examples/Scripts/GenericfMRIVolumeProcessingPipelineBatch.sh --StudyFolder="${DATA_DIR}" --Subjlist="${subject_id}"
+            echo `date` "Functional volume-based preprocessing pipeline submitted for subject ${subject_id}" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
+        else
+            echo "Not executing command."
+        fi
+    else
+        echo "No subject id entered. Not executing a command."
+    fi
+}
+
+run_functional_surface_based_preprocessing() {
+    echo -ne "Enter subject id: "
+    read ans
+    if [ -n "$ans" ] ; then
+        subject_id=${ans}
+
+        echo -e "${colors_red}"
+        echo "Command to execute"
+        echo ". ${PIPELINES_DIR}/Examples/Scripts/GenericfMRISurfaceProcessingPipelineBatch.sh --StudyFolder=\"${DATA_DIR}\" --Subjlist=\"${subject_id}\""
+        echo -e "${colors_no_color}"
+
+        if utils_ShouldProceed ; then
+            . ${PIPELINES_DIR}/Examples/Scripts/GenericfMRISurfaceProcessingPipelineBatch.sh --StudyFolder="${DATA_DIR}" --Subjlist="${subject_id}"
+            echo `date` "Functional surface-based preprocessing pipeline submitted for subject ${subject_id}" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
+        else
+            echo "Not executing command."
+        fi
+    else
+        echo "No subject id entered. Not executing a command."
+    fi
+}
+
+run_diffusion_preprocessing() {
+    echo -ne "Enter subject id: "
+    read ans
+    if [ -n "$ans" ] ; then
+        subject_id=${ans}
+
+        echo -e "${colors_red}"
+        echo "Command to execute"
+        echo ". ${PIPELINES_DIR}/Examples/Scripts/DiffusionPreprocessingBatch.sh --StudyFolder=\"${DATA_DIR}\" --Subjlist=\"${subject_id}\""
+        echo -e "${colors_no_color}"
+
+        if utils_ShouldProceed ; then
+            . ${PIPELINES_DIR}/Examples/Scripts/DiffusionPreprocessingBatch.sh --StudyFolder="${DATA_DIR}" --Subjlist="${subject_id}"
+            echo `date` "Diffusion preprocessing pipeline submitted for subject ${subject_id}" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
+        else
+            echo "Not executing command."
+        fi
+    else
+        echo "No subject id entered. Not executing a command."
+    fi
+}
+
+run_task_analysis() {
+    echo -ne "Enter subject id: "
+    read ans
+    if [ -n "$ans" ] ; then
+        subject_id=${ans}
+
+        echo -e "${colors_red}"
+        echo "Command to execute"
+        echo ". ${PIPELINES_DIR}/Examples/Scripts/TaskfMRIAnalysisBatch.sh --StudyFolder=\"${DATA_DIR}\" --Subjlist=\"${subject_id}\""
+        echo -e "${colors_no_color}"
+
+        if utils_ShouldProceed ; then
+            . ${PIPELINES_DIR}/Examples/Scripts/TaskfMRIAnalysisBatch.sh --StudyFolder="${DATA_DIR}" --Subjlist="${subject_id}"
+            echo `date` "Task analysis pipeline submitted for subject ${subject_id}" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
+        else
+            echo "Not executing command."
+        fi
+    else
+        echo "No subject id entered. Not executing a command."
+    fi
+}
+
+run_ica_fix() {
+    echo "Sorry, this option is not yet implemented."
+}
+
+# Main Menu
+
+PS3='Enter your data setup command choice: '
+
+option1="Eliminate Current data for subject"
+option2="Rebuild Unprocessed Snapshot from zips"
+option3="Copy Unprocessed Snapshot to Current (Get ready to run PreFreeSurfer)"
+
+option4="Run PreFreeSurfer Pipeline on Current"
+option5="Copy Current to PreFreeSurfer Processed Snapshot"
+option6="Copy PreFreeSurfer Processed Snapshot to Current (Get ready to run FreeSurfer)"
+
+option7="Run FreeSurfer Pipeline on Current"
+option8="Copy Current to FreeSurfer Processed Snapshot"
+option9="Copy FreeSurfer Processed Snapshot to Current (Get ready to run PostFreeSurfer)"
+
+option10="Run PostFreeSurfer Pipeline on Current"
+option11="Copy Current to PostFreeSurfer Processed Snapshot"
+option12="Copy PostFreeSurfer Processed Snapshot to Current (Get ready to run Functional Preprocessing or Diffusion Preprocessing)"
+
+option13="Run Functional Volume-based Preprocessing on Current"
+option14="Copy Current to Functional Volume-based Preprocessed Snapshot"
+option15="Copy Functional Volume-based Preprocessed Snapshot to Current (Get ready to run Functional Surface-based Preprocessing)"
+
+option16="Run Functional Surfaced-based Preprocessing on Current"
+option17="Copy Current to Functional Surface-based Preprocessed Snapshot"
+option18="Copy Functional Surface-based Preprocessed Snapshot to Current (Get ready for Task Analysis or ICA FIX)"
+
+option19="Run Diffusion Preprocessing on Current"
+option20="Copy Current to Diffusion Preprocessed Snapshot"
+option21="Copy Diffusion Preprocessed Snapshot to Current (Get ready for what comes after Diffusion Preprocessing)"
+
+option22="Run Task Analysis on Current"
+option23="Copy Current to Task Analysis Complete Snapshot"
+option24="Copy Task Analysis Complete Snapshot to Current (Get ready for what comes after Task Analysis)"
+
+option25="Run ICA FIX on Current"
+option26="Copy Current to ICA FIX Complete Snapshot"
+option27="Copy ICA FIX Complete Snapshot to Current (Get ready for what comes after ICA FIX)"
+
+options=(
+    "$option1"
+    "$option2"
+    "$option3"
+    "$option4"
+    "$option5"
+    "$option6"
+    "$option7"
+    "$option8"
+    "$option9"
+    "$option10"
+    "$option11"
+    "$option12"
+    "$option13"
+    "$option14"
+    "$option15"
+    "$option16"
+    "$option17"
+    "$option18"
+    "$option19"
+    "$option20"
+    "$option21"
+    "$option22"
+    "$option23"
+    "$option24"
+    "$option25"
+    "$option26"
+    "$option27"
+
+    "Quit")
+
+echo ""
+select opt in "${options[@]}"
+do
+    case $opt in
+        "$option1")
+            eliminate_current_subject_data
+            break;;
+        "$option2")
+            rebuild_unprocessed_from_zips
+            break;;
+        "$option3")
+            to_current ${UNPROCESSED_DIR}
+            break;;
+
+        "$option4")
+            run_prefreesurfer
+            break;;
+        "$option5")
+            current_to ${PREFREESURFER_PROCESSED_DIR}
+            break;;
+        "$option6")
+            to_current ${PREFREESURFER_PROCESSED_DIR}
+            break;;
+
+        "$option7")
+            run_freesurfer
+            break;;
+        "$option8") 
+            current_to ${FREESURFER_PROCESSED_DIR}
+            break;;
+        "$option9")
+            to_current ${FREESURFER_PROCESSED_DIR}
+            break;;
+
+        "$option10")
+            run_postfreesurfer
+            break;;
+        "$option11")
+            current_to ${POSTFREESURFER_PROCESSED_DIR}
+            break;;
+        "$option12")
+            to_current ${POSTFREESURFER_PROCESSED_DIR}
+            break;;
+
+        "$option13")
+            run_functional_volume_based_preprocessing
+            break;;
+        "$option14")
+            current_to ${FUNCTIONAL_VOLUME_BASED_PREPROCESSED_DIR}
+            break;;
+        "$option15")
+            to_current ${FUNCTIONAL_VOLUME_BASED_PREPROCESSED_DIR}
+            break;;
+        
+        "$option16")
+            run_functional_surface_based_preprocessing
+            break;;
+        "$option17")
+            current_to ${FUNCTIONAL_SURFACE_BASED_PREPROCESSED_DIR}
+            break;;
+        "$option18")
+            to_current ${FUNCTIONAL_SURFACE_BASED_PREPROCESSED_DIR}
+            break;;
+
+        "$option19")
+            run_diffusion_preprocessing
+            break;;
+        "$option20")
+            current_to ${DIFFUSION_PREPROCESSED_DIR}
+            break;;
+        "$option21")
+            to_current ${DIFFUSION_PREPROCESSED_DIR}
+            break;;
+
+        "$option22")
+            run_task_analysis
+            break;;
+        "$option23")
+            current_to ${TASK_ANALYSIS_COMPLETE_DIR}
+            break;;
+        "$option24")
+            to_current ${TASK_ANALYSIS_COMPLETE_DIR}
+            break;;
+
+        "$option25")
+            run_ica_fix
+            break;;
+        "$option26")
+            current_to ${ICA_FIX_COMPLETE_DIR}
+            break;;
+        "$option27")
+            to_current ${ICA_FIX_COMPLETE_DIR}
+            break;;
+
+        "Quit")
+            echo "Goodbye"
+            break;;
+        *)
+            echo "invalid option"
+            continue;;
+    esac
+done
