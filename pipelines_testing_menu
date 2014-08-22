@@ -143,9 +143,9 @@ run_prefreesurfer() {
         echo -e "${colors_no_color}"
 
         if utils_ShouldProceed ; then
-            . ${PIPELINES_DIR}/Examples/Scripts/PreFreeSurferPipelineBatch.sh --StudyFolder="${DATA_DIR}" --Subjlist="${subject_id}"
             curDate=`date`
-            echo "${curDate} PreFreeSurfer pipeline submitted for subject ${subject_id}" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
+            echo "${curDate} Submitting PreFreeSurfer pipeline for subject ${subject_id}" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
+            . ${PIPELINES_DIR}/Examples/Scripts/PreFreeSurferPipelineBatch.sh --StudyFolder="${DATA_DIR}" --Subjlist="${subject_id}"
         else
             echo "Not executing command."
         fi
@@ -166,9 +166,9 @@ run_freesurfer() {
         echo -e "${colors_no_color}"
 
         if utils_ShouldProceed ; then
-            . ${PIPELINES_DIR}/Examples/Scripts/FreeSurferPipelineBatch.sh --StudyFolder="${DATA_DIR}" --Subjlist="${subject_id}"
             curDate=`date`
-            echo "${curDate} FreeSurfer pipeline submitted for subject ${subject_id}" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
+            echo "${curDate} Submitting FreeSurfer pipeline for subject ${subject_id}" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
+            . ${PIPELINES_DIR}/Examples/Scripts/FreeSurferPipelineBatch.sh --StudyFolder="${DATA_DIR}" --Subjlist="${subject_id}"
         else
             echo "Not executing command."
         fi
@@ -189,9 +189,9 @@ run_postfreesurfer() {
         echo -e "${colors_no_color}"
 
         if utils_ShouldProceed ; then
-            . ${PIPELINES_DIR}/Examples/Scripts/PostFreeSurferPipelineBatch.sh --StudyFolder="${DATA_DIR}" --Subjlist="${subject_id}"
             curDate=`date`
-            echo "${curDate} PostFreeSurfer pipeline submitted for subject ${subject_id}" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
+            echo "${curDate} Submitting PostFreeSurfer pipeline for subject ${subject_id}" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
+            . ${PIPELINES_DIR}/Examples/Scripts/PostFreeSurferPipelineBatch.sh --StudyFolder="${DATA_DIR}" --Subjlist="${subject_id}"
         else
             echo "Not executing command."
         fi
@@ -212,9 +212,9 @@ run_functional_volume_based_preprocessing() {
         echo -e "${colors_no_color}"
 
         if utils_ShouldProceed ; then
-            . ${PIPELINES_DIR}/Examples/Scripts/GenericfMRIVolumeProcessingPipelineBatch.sh --StudyFolder="${DATA_DIR}" --Subjlist="${subject_id}"
             curDate=`date`
-            echo "${curDate} Functional volume-based preprocessing pipeline submitted for subject ${subject_id}" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
+            echo "${curDate} Submitting Functional volume-based preprocessing pipeline for subject ${subject_id}" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
+            . ${PIPELINES_DIR}/Examples/Scripts/GenericfMRIVolumeProcessingPipelineBatch.sh --StudyFolder="${DATA_DIR}" --Subjlist="${subject_id}"
         else
             echo "Not executing command."
         fi
@@ -235,9 +235,9 @@ run_functional_surface_based_preprocessing() {
         echo -e "${colors_no_color}"
 
         if utils_ShouldProceed ; then
-            . ${PIPELINES_DIR}/Examples/Scripts/GenericfMRISurfaceProcessingPipelineBatch.sh --StudyFolder="${DATA_DIR}" --Subjlist="${subject_id}"
             curDate=`date`
-            echo "${curDate} Functional surface-based preprocessing pipeline submitted for subject ${subject_id}" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
+            echo "${curDate} Submitting Functional surface-based preprocessing pipeline for subject ${subject_id}" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
+            . ${PIPELINES_DIR}/Examples/Scripts/GenericfMRISurfaceProcessingPipelineBatch.sh --StudyFolder="${DATA_DIR}" --Subjlist="${subject_id}"
         else
             echo "Not executing command."
         fi
@@ -258,9 +258,9 @@ run_diffusion_preprocessing() {
         echo -e "${colors_no_color}"
 
         if utils_ShouldProceed ; then
-            . ${PIPELINES_DIR}/Examples/Scripts/DiffusionPreprocessingBatch.sh --StudyFolder="${DATA_DIR}" --Subjlist="${subject_id}"
             curDate=`date`
-            echo "${curDate} Diffusion preprocessing pipeline submitted for subject ${subject_id}" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
+            echo "${curDate} Submitting Diffusion preprocessing pipeline for subject ${subject_id}" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
+            . ${PIPELINES_DIR}/Examples/Scripts/DiffusionPreprocessingBatch.sh --StudyFolder="${DATA_DIR}" --Subjlist="${subject_id}"
         else
             echo "Not executing command."
         fi
@@ -281,9 +281,9 @@ run_task_analysis() {
         echo -e "${colors_no_color}"
 
         if utils_ShouldProceed ; then
-            . ${PIPELINES_DIR}/Examples/Scripts/TaskfMRIAnalysisBatch.sh --StudyFolder="${DATA_DIR}" --Subjlist="${subject_id}"
             curDate=`date`
-            echo "${curDate} Task analysis pipeline submitted for subject ${subject_id}" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
+            echo "${curDate} Submitting Task analysis pipeline for subject ${subject_id}" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
+            . ${PIPELINES_DIR}/Examples/Scripts/TaskfMRIAnalysisBatch.sh --StudyFolder="${DATA_DIR}" --Subjlist="${subject_id}"
         else
             echo "Not executing command."
         fi
