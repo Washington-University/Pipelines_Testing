@@ -289,7 +289,7 @@ run_ica_fix() {
 
 # Main Menu
 
-PS3='Enter your data setup command choice: '
+PS3='Enter your command choice: '
 
 option1="Eliminate Current data for subject"
 option2="Rebuild Unprocessed Snapshot from zips"
@@ -457,6 +457,6 @@ do
             break;;
         *)
             echo "invalid option"
-            continue;;
+            break;;
     esac
 done
