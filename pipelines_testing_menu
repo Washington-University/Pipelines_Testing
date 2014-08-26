@@ -21,274 +21,237 @@ ICA_FIX_COMPLETE_DIR="5.IcaFixComplete"
 
 PIPELINES_DIR="${HOME}/projects/Pipelines"
 
-eliminate_current_subject_data() {
+get_subject_id() {
     echo -ne "Enter subject id: "
     read ans
-    if [ -n "$ans" ] ; then
-        subject_id=${ans}
-        dest_dir="${DATA_DIR}/${subject_id}"
-        
-        echo -e "${colors_red}"
-        echo "Command to execute"
-        echo "rm -rvf ${dest_dir}"
-        echo -e "${colors_no_color}"
+    if [ -z "${ans}" ] ; then
+        echo "No subject id given. Not executing any command."
+        exit
+    fi
+    eval "$1='${ans}'"
+}
 
-        if utils_ShouldProceed ; then
-            rm -rvf ${dest_dir}
-            curDate=`date`
-            echo "${curDate} Current subject data for subject ${subject_id} eliminated" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
-        else
-            echo "Not executing command."
-        fi
+get_run_local() {
+    echo -ne "Run locally [y/N]: "
+    read ans
+    if [ -z "${ans}" ] ; then
+        eval "$1=''"
+    elif [ "${ans}" == "Y" -o "${ans}" == "y" ] ; then
+        eval "$1='--runlocal'"
     else
-        echo "No subject id entered. Not executing a command."
-    fi    
+        eval "$1=''"
+    fi
+}
+
+eliminate_current_subject_data() {
+    get_subject_id subject_id
+    dest_dir="${DATA_DIR}/${subject_id}"
+        
+    echo -e "${colors_red}"
+    echo "Command to execute"
+    echo "rm -rvf ${dest_dir}"
+    echo -e "${colors_no_color}"
+
+    if utils_ShouldProceed ; then
+        rm -rvf ${dest_dir}
+        curDate=`date`
+        echo "${curDate} Current subject data for subject ${subject_id} eliminated" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
+    else
+        echo "Not executing command."
+    fi
 }
 
 rebuild_unprocessed_from_zips() {
-    echo -ne "Enter subject id: "
-    read ans
-    if [ -n "$ans" ] ; then
-        subject_id=${ans}
-        zip_dir="${DATA_DIR}/${subject_id}${ZIPS_SUFFIX}"
+    get_subject_id subject_id
+    zip_dir="${DATA_DIR}/${subject_id}${ZIPS_SUFFIX}"
 
-        start_dir="${PWD}"
-        cd ${zip_dir}
+    start_dir="${PWD}"
+    cd ${zip_dir}
 
-        zip_files=`ls -d ${zip_dir}/*.zip`
+    zip_files=`ls -d ${zip_dir}/*.zip`
 
-        for zip_file in ${zip_files} ; do
-            unzip ${zip_file}
-        done
+    for zip_file in ${zip_files} ; do
+        unzip ${zip_file}
+    done
 
-        cd "${start_dir}"
+    cd "${start_dir}"
 
-        source_dir="${zip_dir}/${subject_id}/"
-        dest_dir="${DATA_DIR}/${subject_id}${SNAPSHOTS_SUFFIX}/${UNPROCESSED_DIR}/${subject_id}"
-        mkdir -p ${dest_dir}
-        rsync -av ${source_dir} ${dest_dir}
-        rm -rvf ${source_dir}
-        curDate=`date`
-        echo "${curDate} Unprocessed data for subject ${subject_id} rebuilt from zip files" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
-    else
-        echo "No subject id entered. Not executing a commands."
-    fi    
+    source_dir="${zip_dir}/${subject_id}/"
+    dest_dir="${DATA_DIR}/${subject_id}${SNAPSHOTS_SUFFIX}/${UNPROCESSED_DIR}/${subject_id}"
+    mkdir -p ${dest_dir}
+    rsync -av ${source_dir} ${dest_dir}
+    rm -rvf ${source_dir}
+    curDate=`date`
+    echo "${curDate} Unprocessed data for subject ${subject_id} rebuilt from zip files" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
 }
 
 current_to() {
     local destination_step=${1}
 
-    echo -ne "Enter subject id: "
-    read ans
-    if [ -n "$ans" ] ; then
-        subject_id=${ans}
-        source_dir="${DATA_DIR}/${subject_id}/"
-        dest_dir="${DATA_DIR}/${subject_id}${SNAPSHOTS_SUFFIX}/${destination_step}/${subject_id}"
+    get_subject_id subject_id
+    source_dir="${DATA_DIR}/${subject_id}/"
+    dest_dir="${DATA_DIR}/${subject_id}${SNAPSHOTS_SUFFIX}/${destination_step}/${subject_id}"
 
-        echo -e "${colors_red}"
-        echo "Command to execute"
-        echo "rsync -av ${source_dir} ${dest_dir}"
-        echo -e "${colors_no_color}"
-
-        if utils_ShouldProceed ; then
-            mkdir -p ${dest_dir}
-            rsync -av ${source_dir} ${dest_dir}
-            curDate=`date`
-            echo "${curDate} Current data for subject ${subject_id} copied to ${destination_step}" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
-        else
-            echo "Not executing command."
-        fi
+    echo -e "${colors_red}"
+    echo "Command to execute"
+    echo "rsync -av ${source_dir} ${dest_dir}"
+    echo -e "${colors_no_color}"
+    
+    if utils_ShouldProceed ; then
+        mkdir -p ${dest_dir}
+        rsync -av ${source_dir} ${dest_dir}
+        curDate=`date`
+        echo "${curDate} Current data for subject ${subject_id} copied to ${destination_step}" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
     else
-        echo "No subject id entered. Not executing a command."
+        echo "Not executing command."
     fi
 }
 
 to_current() {
     local from_step=${1}
 
-    echo -ne "Enter subject id: "
-    read ans
-    if [ -n "$ans" ] ; then
-        subject_id=${ans}
-        source_dir="${DATA_DIR}/${subject_id}${SNAPSHOTS_SUFFIX}/${from_step}/${subject_id}/"
-        dest_dir="${DATA_DIR}/${subject_id}"
+    get_subject_id subject_id
+    source_dir="${DATA_DIR}/${subject_id}${SNAPSHOTS_SUFFIX}/${from_step}/${subject_id}/"
+    dest_dir="${DATA_DIR}/${subject_id}"
 
-        echo -e "${colors_red}"
-        echo "Command to execute"
-        echo "rsync -av ${source_dir} ${dest_dir}"
-        echo -e "${colors_no_color}"
-
-        if utils_ShouldProceed ; then
-            mkdir -p ${dest_dir}
-            rsync -av ${source_dir} ${dest_dir}
-            curDate=`date`
-            echo "${curDate} ${from_step} data for subject ${subject_id} copied to current" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
-        else
-            echo "Not executing command."
-        fi
+    echo -e "${colors_red}"
+    echo "Command to execute"
+    echo "rsync -av ${source_dir} ${dest_dir}"
+    echo -e "${colors_no_color}"
+    
+    if utils_ShouldProceed ; then
+        mkdir -p ${dest_dir}
+        rsync -av ${source_dir} ${dest_dir}
+        curDate=`date`
+        echo "${curDate} ${from_step} data for subject ${subject_id} copied to current" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
     else
-        echo "No subject id entered. Not executing a command."
+        echo "Not executing command."
     fi
 }
 
 run_prefreesurfer() {
-    echo -ne "Enter subject id: "
-    read ans
-    if [ -n "$ans" ] ; then
-        subject_id=${ans}
+    get_subject_id subject_id
+    get_run_local runlocal
 
-        echo -e "${colors_red}"
-        echo "Command to execute"
-        echo ". ${PIPELINES_DIR}/Examples/Scripts/PreFreeSurferPipelineBatch.sh --StudyFolder=\"${DATA_DIR}\" --Subjlist=\"${subject_id}\""
-        echo -e "${colors_no_color}"
+    echo -e "${colors_red}"
+    echo "Command to execute"
+    echo ". ${PIPELINES_DIR}/Examples/Scripts/PreFreeSurferPipelineBatch.sh --StudyFolder=\"${DATA_DIR}\" --Subjlist=\"${subject_id}\" ${runlocal}"
+    echo -e "${colors_no_color}"
 
-        if utils_ShouldProceed ; then
-            curDate=`date`
-            echo "${curDate} Submitting PreFreeSurfer pipeline for subject ${subject_id}" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
-            . ${PIPELINES_DIR}/Examples/Scripts/PreFreeSurferPipelineBatch.sh --StudyFolder="${DATA_DIR}" --Subjlist="${subject_id}"
-        else
-            echo "Not executing command."
-        fi
+    if utils_ShouldProceed ; then
+        curDate=`date`
+        echo "${curDate} Submitting PreFreeSurfer pipeline for subject ${subject_id}" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
+        . ${PIPELINES_DIR}/Examples/Scripts/PreFreeSurferPipelineBatch.sh --StudyFolder="${DATA_DIR}" --Subjlist="${subject_id}" ${runlocal}
     else
-        echo "No subject id entered. Not executing a command."
+        echo "Not executing command."
     fi
 }
 
 run_freesurfer() {
-    echo -ne "Enter subject id: "
-    read ans
-    if [ -n "$ans" ] ; then
-        subject_id=${ans}
+    get_subject_id subject_id
+    get_run_local runlocal
 
-        echo -e "${colors_red}"
-        echo "Command to execute"
-        echo ". ${PIPELINES_DIR}/Examples/Scripts/FreeSurferPipelineBatch.sh --StudyFolder=\"${DATA_DIR}\" --Subjlist=\"${subject_id}\""
-        echo -e "${colors_no_color}"
+    echo -e "${colors_red}"
+    echo "Command to execute"
+    echo ". ${PIPELINES_DIR}/Examples/Scripts/FreeSurferPipelineBatch.sh --StudyFolder=\"${DATA_DIR}\" --Subjlist=\"${subject_id}\" ${runlocal}"
+    echo -e "${colors_no_color}"
 
-        if utils_ShouldProceed ; then
-            curDate=`date`
-            echo "${curDate} Submitting FreeSurfer pipeline for subject ${subject_id}" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
-            . ${PIPELINES_DIR}/Examples/Scripts/FreeSurferPipelineBatch.sh --StudyFolder="${DATA_DIR}" --Subjlist="${subject_id}"
-        else
-            echo "Not executing command."
-        fi
+    if utils_ShouldProceed ; then
+        curDate=`date`
+        echo "${curDate} Submitting FreeSurfer pipeline for subject ${subject_id}" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
+        . ${PIPELINES_DIR}/Examples/Scripts/FreeSurferPipelineBatch.sh --StudyFolder="${DATA_DIR}" --Subjlist="${subject_id}" ${runlocal}
     else
-        echo "No subject id entered. Not executing a command."
+        echo "Not executing command."
     fi
 }
 
 run_postfreesurfer() {
-    echo -ne "Enter subject id: "
-    read ans
-    if [ -n "$ans" ] ; then
-        subject_id=${ans}
+    get_subject_id subject_id
+    get_run_local runlocal
 
-        echo -e "${colors_red}"
-        echo "Command to execute"
-        echo ". ${PIPELINES_DIR}/Examples/Scripts/PostFreeSurferPipelineBatch.sh --StudyFolder=\"${DATA_DIR}\" --Subjlist=\"${subject_id}\""
-        echo -e "${colors_no_color}"
+    echo -e "${colors_red}"
+    echo "Command to execute"
+    echo ". ${PIPELINES_DIR}/Examples/Scripts/PostFreeSurferPipelineBatch.sh --StudyFolder=\"${DATA_DIR}\" --Subjlist=\"${subject_id}\" ${runlocal}"
+    echo -e "${colors_no_color}"
 
-        if utils_ShouldProceed ; then
-            curDate=`date`
-            echo "${curDate} Submitting PostFreeSurfer pipeline for subject ${subject_id}" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
-            . ${PIPELINES_DIR}/Examples/Scripts/PostFreeSurferPipelineBatch.sh --StudyFolder="${DATA_DIR}" --Subjlist="${subject_id}"
-        else
-            echo "Not executing command."
-        fi
+    if utils_ShouldProceed ; then
+        curDate=`date`
+        echo "${curDate} Submitting PostFreeSurfer pipeline for subject ${subject_id}" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
+        . ${PIPELINES_DIR}/Examples/Scripts/PostFreeSurferPipelineBatch.sh --StudyFolder="${DATA_DIR}" --Subjlist="${subject_id}" ${runlocal}
     else
-        echo "No subject id entered. Not executing a command."
+        echo "Not executing command."
     fi
 }
 
 run_functional_volume_based_preprocessing() {
-    echo -ne "Enter subject id: "
-    read ans
-    if [ -n "$ans" ] ; then
-        subject_id=${ans}
+    get_subject_id subject_id
+    get_run_local runlocal
 
-        echo -e "${colors_red}"
-        echo "Command to execute"
-        echo ". ${PIPELINES_DIR}/Examples/Scripts/GenericfMRIVolumeProcessingPipelineBatch.sh --StudyFolder=\"${DATA_DIR}\" --Subjlist=\"${subject_id}\""
-        echo -e "${colors_no_color}"
+    echo -e "${colors_red}"
+    echo "Command to execute"
+    echo ". ${PIPELINES_DIR}/Examples/Scripts/GenericfMRIVolumeProcessingPipelineBatch.sh --StudyFolder=\"${DATA_DIR}\" --Subjlist=\"${subject_id}\" ${runlocal}"
+    echo -e "${colors_no_color}"
 
-        if utils_ShouldProceed ; then
-            curDate=`date`
-            echo "${curDate} Submitting Functional volume-based preprocessing pipeline for subject ${subject_id}" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
-            . ${PIPELINES_DIR}/Examples/Scripts/GenericfMRIVolumeProcessingPipelineBatch.sh --StudyFolder="${DATA_DIR}" --Subjlist="${subject_id}"
-        else
-            echo "Not executing command."
-        fi
+    if utils_ShouldProceed ; then
+        curDate=`date`
+        echo "${curDate} Submitting Functional volume-based preprocessing pipeline for subject ${subject_id}" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
+        . ${PIPELINES_DIR}/Examples/Scripts/GenericfMRIVolumeProcessingPipelineBatch.sh --StudyFolder="${DATA_DIR}" --Subjlist="${subject_id}" ${runlocal}
     else
-        echo "No subject id entered. Not executing a command."
+        echo "Not executing command."
     fi
 }
 
 run_functional_surface_based_preprocessing() {
-    echo -ne "Enter subject id: "
-    read ans
-    if [ -n "$ans" ] ; then
-        subject_id=${ans}
+    get_subject_id subject_id
+    get_run_local runlocal
 
-        echo -e "${colors_red}"
-        echo "Command to execute"
-        echo ". ${PIPELINES_DIR}/Examples/Scripts/GenericfMRISurfaceProcessingPipelineBatch.sh --StudyFolder=\"${DATA_DIR}\" --Subjlist=\"${subject_id}\""
-        echo -e "${colors_no_color}"
+    echo -e "${colors_red}"
+    echo "Command to execute"
+    echo ". ${PIPELINES_DIR}/Examples/Scripts/GenericfMRISurfaceProcessingPipelineBatch.sh --StudyFolder=\"${DATA_DIR}\" --Subjlist=\"${subject_id}\" ${runlocal}"
+    echo -e "${colors_no_color}"
 
-        if utils_ShouldProceed ; then
-            curDate=`date`
-            echo "${curDate} Submitting Functional surface-based preprocessing pipeline for subject ${subject_id}" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
-            . ${PIPELINES_DIR}/Examples/Scripts/GenericfMRISurfaceProcessingPipelineBatch.sh --StudyFolder="${DATA_DIR}" --Subjlist="${subject_id}"
-        else
-            echo "Not executing command."
-        fi
+    if utils_ShouldProceed ; then
+        curDate=`date`
+        echo "${curDate} Submitting Functional surface-based preprocessing pipeline for subject ${subject_id}" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
+        . ${PIPELINES_DIR}/Examples/Scripts/GenericfMRISurfaceProcessingPipelineBatch.sh --StudyFolder="${DATA_DIR}" --Subjlist="${subject_id}" ${runlocal}
     else
-        echo "No subject id entered. Not executing a command."
+        echo "Not executing command."
     fi
 }
 
 run_diffusion_preprocessing() {
-    echo -ne "Enter subject id: "
-    read ans
-    if [ -n "$ans" ] ; then
-        subject_id=${ans}
+    get_subject_id subject_id
+    get_run_local runlocal
 
-        echo -e "${colors_red}"
-        echo "Command to execute"
-        echo ". ${PIPELINES_DIR}/Examples/Scripts/DiffusionPreprocessingBatch.sh --StudyFolder=\"${DATA_DIR}\" --Subjlist=\"${subject_id}\""
-        echo -e "${colors_no_color}"
+    echo -e "${colors_red}"
+    echo "Command to execute"
+    echo ". ${PIPELINES_DIR}/Examples/Scripts/DiffusionPreprocessingBatch.sh --StudyFolder=\"${DATA_DIR}\" --Subjlist=\"${subject_id}\" ${runlocal}"
+    echo -e "${colors_no_color}"
 
-        if utils_ShouldProceed ; then
-            curDate=`date`
-            echo "${curDate} Submitting Diffusion preprocessing pipeline for subject ${subject_id}" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
-            . ${PIPELINES_DIR}/Examples/Scripts/DiffusionPreprocessingBatch.sh --StudyFolder="${DATA_DIR}" --Subjlist="${subject_id}"
-        else
-            echo "Not executing command."
-        fi
+    if utils_ShouldProceed ; then
+        curDate=`date`
+        echo "${curDate} Submitting Diffusion preprocessing pipeline for subject ${subject_id}" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
+        . ${PIPELINES_DIR}/Examples/Scripts/DiffusionPreprocessingBatch.sh --StudyFolder="${DATA_DIR}" --Subjlist="${subject_id}" ${runlocal}
     else
-        echo "No subject id entered. Not executing a command."
+        echo "Not executing command."
     fi
 }
 
 run_task_analysis() {
-    echo -ne "Enter subject id: "
-    read ans
-    if [ -n "$ans" ] ; then
-        subject_id=${ans}
+    get_subject_id subject_id
+    get_run_local runlocal
 
-        echo -e "${colors_red}"
-        echo "Command to execute"
-        echo ". ${PIPELINES_DIR}/Examples/Scripts/TaskfMRIAnalysisBatch.sh --StudyFolder=\"${DATA_DIR}\" --Subjlist=\"${subject_id}\""
-        echo -e "${colors_no_color}"
+    echo -e "${colors_red}"
+    echo "Command to execute"
+    echo ". ${PIPELINES_DIR}/Examples/Scripts/TaskfMRIAnalysisBatch.sh --StudyFolder=\"${DATA_DIR}\" --Subjlist=\"${subject_id}\" ${runlocal}"
+    echo -e "${colors_no_color}"
 
-        if utils_ShouldProceed ; then
-            curDate=`date`
-            echo "${curDate} Submitting Task analysis pipeline for subject ${subject_id}" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
-            . ${PIPELINES_DIR}/Examples/Scripts/TaskfMRIAnalysisBatch.sh --StudyFolder="${DATA_DIR}" --Subjlist="${subject_id}"
-        else
-            echo "Not executing command."
-        fi
+    if utils_ShouldProceed ; then
+        curDate=`date`
+        echo "${curDate} Submitting Task analysis pipeline for subject ${subject_id}" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
+        . ${PIPELINES_DIR}/Examples/Scripts/TaskfMRIAnalysisBatch.sh --StudyFolder="${DATA_DIR}" --Subjlist="${subject_id}"
     else
-        echo "No subject id entered. Not executing a command."
+        echo "Not executing command."
     fi
 }
 

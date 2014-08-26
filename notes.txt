@@ -1,0 +1,5 @@
+2014.08.22.16.36 
+- When running FreeSurfer pipeline with no LD_LIBRARY_PATH get error message running mri_make_surfaces about libnetcdf.so.6 not being found.
+- Tried reinstating setup of wb_command using nrgpackages installed version, this sets LD_LIBRARY_PATH
+- Re-started FreeSurfer stage for 4 subjects 100307, 127630, 146432, and 978578 to see if that change helps.
+- Doesn't seem to change a thing.
