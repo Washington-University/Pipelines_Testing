@@ -5,7 +5,8 @@
 source colors.shlib
 source utils.shlib
 
-DATA_DIR="${HOME}/projects/Pipelines_ExampleData"
+#DATA_DIR="${HOME}/projects/Pipelines_ExampleData"
+DATA_DIR="${HOME}/projects/Pipelines_Gdc_CorrectionTest"
 SNAPSHOTS_SUFFIX=".snapshots"
 ZIPS_SUFFIX=".zips"
 STATUS_SUFFIX=".status"
@@ -55,7 +56,7 @@ eliminate_current_subject_data() {
     if utils_ShouldProceed ; then
         rm -rvf ${dest_dir}
         curDate=`date`
-        printf "${curDate} Current subject data for subject ${subject_id} eliminated\n" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
+        printf "${curDate} Current data for subject eliminated\n" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
     else
         echo "Not executing command."
     fi
@@ -82,7 +83,7 @@ rebuild_unprocessed_from_zips() {
     rsync -av ${source_dir} ${dest_dir}
     rm -rvf ${source_dir}
     curDate=`date`
-    printf "${curDate} Unprocessed data for subject ${subject_id} rebuilt from zip files\n" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
+    printf "${curDate} Unprocessed data rebuilt from zip files\n" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
 }
 
 current_to() {
@@ -101,7 +102,7 @@ current_to() {
         mkdir -p ${dest_dir}
         rsync -av ${source_dir} ${dest_dir}
         curDate=`date`
-        printf "${curDate} Current data for subject ${subject_id} copied to ${destination_step}\n" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
+        printf "${durDate} Current data for subject copied to ${destination_step}\n" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
     else
         echo "Not executing command."
     fi
@@ -123,7 +124,7 @@ to_current() {
         mkdir -p ${dest_dir}
         rsync -av ${source_dir} ${dest_dir}
         curDate=`date`
-        printf "${curDate} ${from_step} data for subject ${subject_id} copied to current\n" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
+        printf "${curDate} ${from_step} data copied to current\n" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
     else
         echo "Not executing command."
     fi
@@ -140,7 +141,7 @@ run_prefreesurfer() {
 
     if utils_ShouldProceed ; then
         curDate=`date`
-        printf "${curDate} Submitting PreFreeSurfer pipeline for subject ${subject_id}\n" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
+        printf "${curDate} Submitting PreFreeSurfer pipeline\n" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
         . ${PIPELINES_DIR}/Examples/Scripts/PreFreeSurferPipelineBatch.sh --StudyFolder="${DATA_DIR}" --Subjlist="${subject_id}" ${runlocal}
     else
         echo "Not executing command."
@@ -158,7 +159,7 @@ run_freesurfer() {
 
     if utils_ShouldProceed ; then
         curDate=`date`
-        printf "${curDate} Submitting FreeSurfer pipeline for subject ${subject_id}\n" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
+        printf "${curDate} Submitting FreeSurfer pipeline\n" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
         . ${PIPELINES_DIR}/Examples/Scripts/FreeSurferPipelineBatch.sh --StudyFolder="${DATA_DIR}" --Subjlist="${subject_id}" ${runlocal}
     else
         echo "Not executing command."
@@ -176,7 +177,7 @@ run_postfreesurfer() {
 
     if utils_ShouldProceed ; then
         curDate=`date`
-        printf "${curDate} Submitting PostFreeSurfer pipeline for subject ${subject_id}\n" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
+        printf "${curDate} Submitting PostFreeSurfer pipeline\n" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
         . ${PIPELINES_DIR}/Examples/Scripts/PostFreeSurferPipelineBatch.sh --StudyFolder="${DATA_DIR}" --Subjlist="${subject_id}" ${runlocal}
     else
         echo "Not executing command."
@@ -194,7 +195,7 @@ run_functional_volume_based_preprocessing() {
 
     if utils_ShouldProceed ; then
         curDate=`date`
-        printf "${curDate} Submitting Functional volume-based preprocessing pipeline for subject ${subject_id}\n" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
+        printf "${curDate} Submitting Functional volume-based preprocessing pipeline\n" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
         . ${PIPELINES_DIR}/Examples/Scripts/GenericfMRIVolumeProcessingPipelineBatch.sh --StudyFolder="${DATA_DIR}" --Subjlist="${subject_id}" ${runlocal}
     else
         echo "Not executing command."
@@ -212,7 +213,7 @@ run_functional_surface_based_preprocessing() {
 
     if utils_ShouldProceed ; then
         curDate=`date`
-        printf "${curDate} Submitting Functional surface-based preprocessing pipeline for subject ${subject_id}\n" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
+        printf "${curDate} Submitting Functional surface-based preprocessing pipeline\n" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
         . ${PIPELINES_DIR}/Examples/Scripts/GenericfMRISurfaceProcessingPipelineBatch.sh --StudyFolder="${DATA_DIR}" --Subjlist="${subject_id}" ${runlocal}
     else
         echo "Not executing command."
@@ -230,7 +231,7 @@ run_diffusion_preprocessing() {
 
     if utils_ShouldProceed ; then
         curDate=`date`
-        printf "${curDate} Submitting Diffusion preprocessing pipeline for subject ${subject_id}\n" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
+        printf "${curDate} Submitting Diffusion preprocessing pipeline\n" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
         . ${PIPELINES_DIR}/Examples/Scripts/DiffusionPreprocessingBatch.sh --StudyFolder="${DATA_DIR}" --Subjlist="${subject_id}" ${runlocal}
     else
         echo "Not executing command."
@@ -248,7 +249,7 @@ run_task_analysis() {
 
     if utils_ShouldProceed ; then
         curDate=`date`
-        printf "${curDate} Submitting Task analysis pipeline for subject ${subject_id}\n" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
+        printf "${curDate} Submitting Task analysis pipeline\n" >> ${DATA_DIR}/${subject_id}${STATUS_SUFFIX}/${subject_id}.status.txt
         . ${PIPELINES_DIR}/Examples/Scripts/TaskfMRIAnalysisBatch.sh --StudyFolder="${DATA_DIR}" --Subjlist="${subject_id}"
     else
         echo "Not executing command."
